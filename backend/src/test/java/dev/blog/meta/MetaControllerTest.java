@@ -2,6 +2,7 @@ package dev.blog.meta;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -30,6 +31,13 @@ class MetaControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.siteName").isNotEmpty())
                 .andExpect(jsonPath("$.admin").value(false));
+    }
+
+    @Test
+    void getIssuesReadableCsrfCookieForTheSpa() throws Exception {
+        mvc.perform(get("/api/public/meta"))
+                .andExpect(cookie().exists("XSRF-TOKEN"))
+                .andExpect(cookie().httpOnly("XSRF-TOKEN", false));
     }
 
     @Test

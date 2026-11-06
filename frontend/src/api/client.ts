@@ -47,7 +47,12 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     headers.set('Content-Type', 'application/json')
   }
   if (UNSAFE_METHODS.has(method)) {
-    const token = readCookie('XSRF-TOKEN')
+    let token = readCookie('XSRF-TOKEN')
+    if (!token) {
+      // Spring issues the CSRF cookie on any response; make sure we have one before writing.
+      await fetch('/api/public/meta', { credentials: 'same-origin' })
+      token = readCookie('XSRF-TOKEN')
+    }
     if (token) headers.set('X-XSRF-TOKEN', decodeURIComponent(token))
   }
 

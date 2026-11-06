@@ -8,7 +8,9 @@ services:
       - 'POSTGRES_USER=blog'
       - 'POSTGRES_PASSWORD=blog'
     ports:
-      - '5432:5432'
+      # Host port 55432 avoids clashing with a locally installed Postgres (e.g. Postgres.app on 5432).
+      # Spring Boot reads the mapping automatically. psql: postgres://blog:blog@localhost:55432/blog
+      - '55432:5432'
   mailpit:
     # Catches all outgoing mail in dev (OTP emails). Web UI: http://localhost:8025
     image: 'axllent/mailpit:latest'

@@ -15,8 +15,8 @@ Browser ──HTTPS──▶ Railway: one container (Spring Boot 4, Java 25)
                           └──▶ Resend SMTP (OTP emails)
 ```
 
-Dev: Vite (`:5173`) proxies `/api` and `/media` to Spring (`:8080`). Postgres + Mailpit via
-`backend/compose.yaml`, started automatically by Spring Boot.
+Dev: Vite (`:5173`) proxies `/api` and `/media` to Spring (`:8080`). Postgres (host port 55432) +
+Mailpit (UI :8025) via `backend/compose.yaml`, started automatically by Spring Boot.
 
 ## Repository layout
 
@@ -155,8 +155,9 @@ Admin (`ROLE_ADMIN`): `/api/admin/posts` (CRUD + `/publish`, `/unpublish`), `/ap
    `request.changeSessionId()`, create `UsernamePasswordAuthenticationToken(adminEmail, null,
    ROLE_ADMIN)`, save via `SecurityContextRepository` (`HttpSessionSecurityContextRepository`).
 3. Recovery codes: 10 codes, format `XXXX-XXXX-XXXX` from Crockford base32 alphabet via
-   `SecureRandom`; stored BCrypt-hashed; input normalized (uppercase, strip spaces/dashes).
-   Verify checks all unused codes; on match mark `used_at`.
+   `SecureRandom` (60 bits); stored as **SHA-256** (high entropy ⇒ slow hash unnecessary, and it avoids
+   10 BCrypt compares per attempt = CPU-DoS vector); input normalized (uppercase, strip separators,
+   I/L→1, O→0). Lookup by hash; on match mark `used_at`.
 4. Email body: code, expiry, "if you didn't request this, ignore it", requester's approximate time.
    No link (avoids email-scanner prefetch issues).
 
@@ -186,7 +187,9 @@ Exceeded ⇒ 429 ProblemDetail with `Retry-After`.
 
 ### IP hashing
 `Hashing.ipHash(ip) = base64url(sha256(IP_HASH_SALT + ip))`. Client IP from
-`request.getRemoteAddr()` (correct because `server.forward-headers-strategy=framework`).
+`request.getRemoteAddr()`, set by Tomcat's RemoteIpValve (`server.forward-headers-strategy=native`), which
+reads `X-Forwarded-For` right-to-left trusting only internal proxy IPs — clients can't spoof it.
+Never use `framework` (trusts the client-controlled left-most value).
 
 ### Headers
 CSP (in `SecurityConfig`; widen `img-src` to the R2 domain only, not `https:`, once known),
@@ -205,10 +208,10 @@ All via env vars (see `.env.example`). Mapped in `application.yaml` → `BlogPro
 | `JDBC_DATABASE_URL/USERNAME/PASSWORD` | 0 | Neon |
 | `MAIL_HOST/PORT/USERNAME/PASSWORD`, `MAIL_FROM` | 1 | Resend SMTP |
 | `BLOG_AUTHOR_NAME` | 1 | author display name |
+| `IP_HASH_SALT` | 1 | random string ≥ 16 chars; salts IP hashes (rate limits, later views/comments) |
 | `STORAGE_DRIVER` (`local`/`r2`), `R2_*`, `R2_PUBLIC_BASE_URL` | 2 | images |
 | `BLOG_RESERVED_NAMES` | 8 | comma-separated, e.g. owner's names |
 | `GUEST_COOKIE_SECRET` | 8 | ≥ 32 bytes base64; rotating it resets all guest identities |
-| `IP_HASH_SALT` | 8 | random string |
 
 Dev defaults must work with zero env vars set.
 

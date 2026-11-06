@@ -7,7 +7,7 @@ commands pass. Then tick the box, commit, and stop for owner review.
 ## Status
 
 - [x] **Phase 0** — Skeleton (done by Opus during design)
-- [ ] **Phase 1** — Admin auth: email OTP + recovery codes + sessions  ⚠️ owner review + `/security-review`
+- [x] **Phase 1** — Admin auth: email OTP + recovery codes + sessions  ⚠️ owner review + `/security-review`
 - [ ] **Phase 2** — Media upload + storage
 - [ ] **Phase 3** — Posts: model, admin CRUD, TipTap editor, sanitization
 - [ ] **Phase 4** — Public reading: post list/page, SEO tags, sitemap, RSS, theme
@@ -69,18 +69,28 @@ Frontend
 9. Add routes to `router.tsx` **and** `SpaIndexController` (`/admin/**` already mapped).
 
 Acceptance criteria (each needs a test unless marked manual)
-- [ ] Request for admin email stores exactly one active hashed code and sends one mail.
-- [ ] Request for any other email returns the identical 202 body and sends no mail.
-- [ ] Correct code → 204, session cookie set, `GET /api/public/meta` reports `admin: true`.
-- [ ] Wrong code 5× → code dead; correct code afterwards fails.
-- [ ] Expired code fails; consumed code can't be reused; requesting a new code kills the old one.
-- [ ] Recovery code logs in once; same code fails the second time; regenerate invalidates old set.
-- [ ] `/api/admin/**` → 401 anonymous, 200 for admin. POST without CSRF → 403.
-- [ ] 4th OTP request within 15 min from one IP → 429.
-- [ ] Session survives backend restart (Spring Session JDBC) — integration test or manual.
-- [ ] Manual: full login in browser with Mailpit (`http://localhost:8025`).
+- [x] Request for admin email stores exactly one active hashed code and sends one mail.
+- [x] Request for any other email returns the identical 202 body and sends no mail.
+- [x] Correct code → 204, session cookie set, `GET /api/public/meta` reports `admin: true`.
+- [x] Wrong code 5× → code dead; correct code afterwards fails.
+- [x] Expired code fails; consumed code can't be reused; requesting a new code kills the old one.
+- [x] Recovery code logs in once; same code fails the second time; regenerate invalidates old set.
+- [x] `/api/admin/**` → 401 anonymous, 200 for admin. POST without CSRF → 403.
+- [x] 4th OTP request within 15 min from one IP → 429.
+- [x] Session survives backend restart (Spring Session JDBC) — integration test or manual.
+- [x] Manual: full login in browser with Mailpit (`http://localhost:8025`).
 
 Then: owner reviews; run `/security-review`.
+
+**Done 2026-11-05 (Opus).** Notes for later phases:
+- Spring Session ignores `server.servlet.session.*`: timeout is `spring.session.timeout`, and the cookie
+  is configured in `config/SessionCookieConfig` (HttpOnly, SameSite=Lax, Secure per profile, 30-day Max-Age).
+  Both are asserted in `AuthFlowIntegrationTest`.
+- Mail health indicator disabled so SMTP outages don't fail Railway health checks.
+- `IP_HASH_SALT` and `BLOG_AUTHOR_NAME` were needed now (pulled forward from Phase 8).
+- Rate limits live in `common/Limits`; `RateLimiter.reset()` exists for tests.
+- Compose Postgres is on host port **55432** (owner has Postgres.app on 5432).
+- Dev admin email defaults to `admin@example.com`; codes land in Mailpit (http://localhost:8025).
 
 ---
 

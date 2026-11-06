@@ -13,3 +13,10 @@ spring:
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
+
+blog:
+  # No defaults in prod: the app must fail to start if these are missing.
+  admin-email: ${ADMIN_EMAIL}
+  base-url: ${BLOG_BASE_URL}
+  mail-from: ${MAIL_FROM}
+  ip-hash-salt: ${IP_HASH_SALT}

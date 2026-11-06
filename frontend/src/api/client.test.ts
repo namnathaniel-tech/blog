@@ -23,6 +23,16 @@ describe('api()', () => {
     expect(headers.get('X-XSRF-TOKEN')).toBe('abc123')
   })
 
+  it('fetches a CSRF cookie first when none exists', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      if (input === '/api/public/meta') document.cookie = 'XSRF-TOKEN=fresh'
+      return new Response(null, { status: 204 })
+    })
+    await api('/x', { method: 'POST', body: '{}' })
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/public/meta')
+    expect((fetchMock.mock.calls[1][1]!.headers as Headers).get('X-XSRF-TOKEN')).toBe('fresh')
+  })
+
   it('throws ApiError with the problem detail', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       new Response(JSON.stringify({ status: 404, title: 'Not Found', detail: 'No such post' }), { status: 404 }),

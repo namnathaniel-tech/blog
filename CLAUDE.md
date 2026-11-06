@@ -60,7 +60,11 @@ your summary, and add it to DECISIONS.md only after the owner agrees.
   + ARCHITECTURE §Configuration. Never `@Value`, never hard-code secrets.
 - Spring Boot 4 notes: test slice annotations moved, e.g.
   `org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest`; Jackson is 3.x (`tools.jackson`);
-  use `@MockitoBean` (not `@MockBean`).
+  use `@MockitoBean` (not `@MockBean`). Spring Session JDBC ignores `server.servlet.session.*`
+  (use `spring.session.timeout`; cookie flags live in `config/SessionCookieConfig`).
+- Integration tests: `@SpringBootTest @AutoConfigureMockMvc @Import(TestcontainersConfiguration.class)`;
+  mock `JavaMailSender` with `@MockitoBean`; call `RateLimiter.reset()` in `@BeforeEach`.
+  See `auth/AuthFlowIntegrationTest` as the template.
 
 **Frontend (`frontend/src/`)**
 - All HTTP goes through `api()` in `api/client.ts`. One file per resource in `api/` exporting
