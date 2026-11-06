@@ -1,0 +1,15 @@
+# Production (Railway/Render). Set SPRING_PROFILES_ACTIVE=prod.
+# Required env: DATABASE_URL-style vars below, ADMIN_EMAIL, MAIL_*, BLOG_BASE_URL,
+# plus later-phase secrets listed in docs/ARCHITECTURE.md#configuration.
+spring:
+  docker:
+    compose:
+      enabled: false
+  datasource:
+    url: ${JDBC_DATABASE_URL}
+    username: ${JDBC_DATABASE_USERNAME}
+    password: ${JDBC_DATABASE_PASSWORD}
+  mail:
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true

@@ -1,0 +1,20 @@
+# Local dev services. Spring Boot's docker-compose support starts these
+# automatically on `./mvnw spring-boot:run` and wires the connection details.
+services:
+  postgres:
+    image: 'postgres:17-alpine'   # match Neon's major version
+    environment:
+      - 'POSTGRES_DB=blog'
+      - 'POSTGRES_USER=blog'
+      - 'POSTGRES_PASSWORD=blog'
+    ports:
+      - '5432:5432'
+  mailpit:
+    # Catches all outgoing mail in dev (OTP emails). Web UI: http://localhost:8025
+    image: 'axllent/mailpit:latest'
+    ports:
+      - '1025:1025'
+      - '8025:8025'
+    labels:
+      # Not a service Spring Boot can auto-connect; we configure SMTP in application-dev.yaml.
+      org.springframework.boot.ignore: true

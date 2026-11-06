@@ -1,0 +1,6 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+# local image uploads in dev (LocalDiskStorage)
+/data/

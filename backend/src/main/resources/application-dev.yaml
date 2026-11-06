@@ -1,0 +1,19 @@
+# Local development. Activated by default (spring.profiles.default=dev).
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false    # http://localhost
+
+spring:
+  docker:
+    compose:
+      file: compose.yaml
+      lifecycle-management: start-only
+  mail:
+    host: localhost
+    port: 1025
+
+logging:
+  level:
+    dev.blog: DEBUG
